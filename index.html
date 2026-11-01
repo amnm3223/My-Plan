@@ -46,7 +46,7 @@
                 <i class="fa-solid fa-calendar-day mr-2"></i>日別時間割
             </button>
             <button onclick="switchTab('jisuu')" id="tab-jisuu" class="py-2.5 px-4 text-sm font-medium border-b-2 border-transparent text-indigo-200 hover:text-white flex items-center whitespace-nowrap">
-                <i class="fa-solid fa-calculator mr-2"></i>時数管理・実績
+                <i class="fa-solid fa-calculator mr-2"></i>時数管理・集計
             </button>
             <button onclick="switchTab('annual')" id="tab-annual" class="py-2.5 px-4 text-sm font-medium border-b-2 border-transparent text-indigo-200 hover:text-white flex items-center whitespace-nowrap">
                 <i class="fa-solid fa-book-open mr-2"></i>年間指導計画
@@ -103,40 +103,53 @@
             </div>
         </section>
 
-        <!-- 2. 時数管理・実績 タブ -->
+        <!-- 2. 時数管理・実績 タブ (C打ち切り対応) -->
         <section id="sec-jisuu" class="hidden space-y-4">
-            <div class="bg-white rounded-xl p-5 shadow-sm border border-slate-200 overflow-x-auto">
-                <div class="flex justify-between items-center mb-4">
+            <div class="bg-white rounded-xl p-5 shadow-sm border border-slate-200 space-y-4">
+                <div class="flex flex-wrap justify-between items-center gap-4 border-b pb-3">
                     <h2 class="font-bold text-slate-800 text-lg flex items-center">
-                        <i class="fa-solid fa-table text-indigo-600 mr-2"></i>年間授業時数・実施状況
+                        <i class="fa-solid fa-calculator text-indigo-600 mr-2"></i>指定期間の授業時数自動計算
                     </h2>
+                    <div class="flex flex-wrap items-center gap-2 bg-indigo-50/70 p-2 rounded-xl border border-indigo-100">
+                        <label class="text-xs font-bold text-indigo-900"><i class="fa-solid fa-filter mr-1"></i>集計期間:</label>
+                        <input type="date" id="jisuuStartDate" onchange="calculateJisuu()" class="border border-slate-300 text-xs rounded-lg px-2 py-1 font-bold">
+                        <span class="text-xs font-bold text-slate-500">〜</span>
+                        <input type="date" id="jisuuEndDate" onchange="calculateJisuu()" class="border border-slate-300 text-xs rounded-lg px-2 py-1 font-bold">
+                        <button onclick="calculateJisuu()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-3 py-1 rounded-lg transition">再計算</button>
+                    </div>
                 </div>
-                <table class="w-full text-xs text-center border-collapse border border-slate-300 min-w-[800px]">
-                    <thead>
-                        <tr class="bg-slate-100 font-bold border-b border-slate-300">
-                            <th class="p-2 border border-slate-300">学期/区分</th>
-                            <th class="p-2 border border-slate-300">国・書</th>
-                            <th class="p-2 border border-slate-300">社会</th>
-                            <th class="p-2 border border-slate-300">算数</th>
-                            <th class="p-2 border border-slate-300">理科</th>
-                            <th class="p-2 border border-slate-300">生活</th>
-                            <th class="p-2 border border-slate-300">音楽</th>
-                            <th class="p-2 border border-slate-300">図工</th>
-                            <th class="p-2 border border-slate-300">家庭</th>
-                            <th class="p-2 border border-slate-300">体育</th>
-                            <th class="p-2 border border-slate-300">道徳</th>
-                            <th class="p-2 border border-slate-300">外国語</th>
-                            <th class="p-2 border border-slate-300">総合</th>
-                            <th class="p-2 border border-slate-300">学活</th>
-                            <th class="p-2 border border-slate-300">児活</th>
-                            <th class="p-2 border border-slate-300">クラブ</th>
-                            <th class="p-2 border border-slate-300">委員</th>
-                            <th class="p-2 border border-slate-300">行事</th>
-                            <th class="p-2 border border-slate-300 bg-indigo-50">合計</th>
-                        </tr>
-                    </thead>
-                    <tbody id="jisuuTbody"></tbody>
-                </table>
+
+                <p class="text-xs text-slate-500">
+                    💡 アプリ上で時間割を変更（例：国語から算数へ変更、C(打ち切り)の入力など）すると、指定期間内の実施時数が自動的に即時計算・カウントされます。
+                </p>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-xs text-center border-collapse border border-slate-300 min-w-[850px]">
+                        <thead>
+                            <tr class="bg-slate-100 font-bold border-b border-slate-300">
+                                <th class="p-2 border border-slate-300">区分</th>
+                                <th class="p-2 border border-slate-300">国語</th>
+                                <th class="p-2 border border-slate-300">書写</th>
+                                <th class="p-2 border border-slate-300">社会</th>
+                                <th class="p-2 border border-slate-300">算数</th>
+                                <th class="p-2 border border-slate-300">理科</th>
+                                <th class="p-2 border border-slate-300">生活</th>
+                                <th class="p-2 border border-slate-300">音楽</th>
+                                <th class="p-2 border border-slate-300">図工</th>
+                                <th class="p-2 border border-slate-300">家庭</th>
+                                <th class="p-2 border border-slate-300">体育</th>
+                                <th class="p-2 border border-slate-300">道徳</th>
+                                <th class="p-2 border border-slate-300">外国語</th>
+                                <th class="p-2 border border-slate-300">総合</th>
+                                <th class="p-2 border border-slate-300">学活</th>
+                                <th class="p-2 border border-slate-300 bg-amber-50 text-amber-900">C(打ち切り)</th>
+                                <th class="p-2 border border-slate-300">行事</th>
+                                <th class="p-2 border border-slate-300 bg-indigo-50">合計</th>
+                            </tr>
+                        </thead>
+                        <tbody id="jisuuTbody"></tbody>
+                    </table>
+                </div>
             </div>
         </section>
 
@@ -270,14 +283,8 @@
     </div>
 
     <script>
-        // --- 教科変換マップ ---
-        const SUBJECT_MAP = {
-            "生": "生活", "国": "国語", "算": "算数", "体": "体育", "音": "音楽", 
-            "図": "図工", "道": "道徳", "書": "書写", "学": "学活", "行": "行事", "C": "カウンター"
-        };
-        const SUBJECT_LIST = ["国語", "書写", "社会", "算数", "理科", "生活", "音楽", "図工", "家庭", "体育", "道徳", "外国語", "総合", "学活", "児活", "クラブ", "委員会", "行事", "カウンター", "自立"];
+        const SUBJECT_LIST = ["国語", "書写", "社会", "算数", "理科", "生活", "音楽", "図工", "家庭", "体育", "道徳", "外国語", "総合", "学活", "C(打ち切り)", "行事"];
 
-        // グローバルデータ
         let scheduleData = {};
         let baseTimetable = {
             A: [
@@ -303,20 +310,20 @@
             "国語": { 4: "はるがきた② / おはなしをききたいな②", 5: "きけそうかな② / ぶんをつくろう④", 10: "くじらぐも⑤ / まちがいをおそう②" },
             "算数": { 4: "10までのかず⑦", 5: "いくつといくつ④", 10: "かたちあそび⑤ / たしざん③ / ひきざん⑩" }
         };
-        let jisuuData = [
-            { label: "目標時数", values: [306, 0, 136, 0, 102, 68, 68, 0, 102, 34, 5, 0, 34, 3, 0, 0, 18, 876] },
-            { label: "1学期実施", values: [89.6, 0, 43, 0, 41, 17, 25, 0, 40, 13, 0, 0, 12, 2, 0, 0, 15, 297.6] }
-        ];
+
+        let targetJisuu = { "国語": 306, "書写": 0, "社会": 0, "算数": 136, "理科": 0, "生活": 102, "音楽": 68, "図工": 68, "家庭": 0, "体育": 102, "道徳": 34, "外国語": 5, "総合": 0, "学活": 34, "C(打ち切り)": 0, "行事": 18 };
 
         window.addEventListener('DOMContentLoaded', () => {
             const todayStr = new Date().toISOString().split('T')[0];
             document.getElementById('targetDate').value = todayStr;
             document.getElementById('weeklyBaseDate').value = todayStr;
+            document.getElementById('jisuuStartDate').value = '2026-04-01';
+            document.getElementById('jisuuEndDate').value = '2026-07-31';
 
             loadLocalStorage();
             initPeriodsUI();
             loadDateData();
-            renderJisuuTable();
+            calculateJisuu();
             renderAnnualPlan();
         });
 
@@ -329,6 +336,7 @@
             document.getElementById(`tab-${tabKey}`).className = "py-2.5 px-4 text-sm font-medium border-b-2 border-yellow-300 text-yellow-300 flex items-center whitespace-nowrap";
 
             if(tabKey === 'weekly') renderWeeklySheet();
+            if(tabKey === 'jisuu') calculateJisuu();
         }
 
         function initPeriodsUI() {
@@ -351,7 +359,7 @@
                         </div>
                     </div>
                     <div>
-                        <input type="text" id="p${i}_content" onchange="saveCurrentDateData()" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-400 focus:outline-none" placeholder="学習内容・活動（単元名）">
+                        <input type="text" id="p${i}_content" onchange="saveCurrentDateData()" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-400 focus:outline-none" placeholder="学習内容・単元名">
                     </div>
                     <div>
                         <textarea id="p${i}_plan" onchange="saveCurrentDateData()" rows="2" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs focus:ring-2 focus:ring-indigo-300 focus:outline-none" placeholder="📝 授業構想・発問・板書計画メモ"></textarea>
@@ -433,13 +441,71 @@
                 periods: periods
             };
             saveToLocalStorage();
+            calculateJisuu();
         }
 
-        // --- 基本時間割 モーダル設定 ---
-        function openBaseModal() {
-            renderBaseTimetableModal();
-            document.getElementById('baseModal').classList.remove('hidden');
+        // --- 動的時数計算 (C打ち切り対応) ---
+        function calculateJisuu() {
+            const startDate = document.getElementById('jisuuStartDate').value;
+            const endDate = document.getElementById('jisuuEndDate').value;
+
+            const counts = {};
+            SUBJECT_LIST.forEach(s => counts[s] = 0);
+
+            Object.keys(scheduleData).forEach(dStr => {
+                if (dStr >= startDate && dStr <= endDate) {
+                    const data = scheduleData[dStr];
+                    if (data && data.periods) {
+                        data.periods.forEach(p => {
+                            if (p.subj) {
+                                let normSubj = p.subj;
+                                if (normSubj === 'C' || normSubj === 'カウンター' || normSubj === '打ち切り') {
+                                    normSubj = 'C(打ち切り)';
+                                }
+                                if (SUBJECT_LIST.includes(normSubj)) {
+                                    counts[normSubj] = (counts[normSubj] || 0) + 1;
+                                }
+                            }
+                        });
+                    }
+                }
+            });
+
+            const tbody = document.getElementById('jisuuTbody');
+            tbody.innerHTML = '';
+
+            let rowTarget = `<tr class="bg-slate-50"><td class="p-2 font-bold border border-slate-300">年間目標時数</td>`;
+            let sumTarget = 0;
+            SUBJECT_LIST.forEach(s => {
+                const t = targetJisuu[s] || 0;
+                sumTarget += t;
+                rowTarget += `<td class="p-2 border border-slate-300 font-bold text-slate-700">${t}</td>`;
+            });
+            rowTarget += `<td class="p-2 border border-slate-300 font-bold bg-indigo-50 text-indigo-900">${sumTarget}</td></tr>`;
+
+            let rowActual = `<tr class="bg-emerald-50/50"><td class="p-2 font-bold border border-slate-300 text-emerald-800">指定期間実施</td>`;
+            let sumActual = 0;
+            SUBJECT_LIST.forEach(s => {
+                const act = counts[s] || 0;
+                sumActual += act;
+                rowActual += `<td class="p-2 border border-slate-300 font-bold text-emerald-700">${act}</td>`;
+            });
+            rowActual += `<td class="p-2 border border-slate-300 font-bold bg-emerald-100 text-emerald-900">${sumActual}</td></tr>`;
+
+            let rowRemain = `<tr class="bg-white"><td class="p-2 font-bold border border-slate-300">残り時数</td>`;
+            let sumRemain = 0;
+            SUBJECT_LIST.forEach(s => {
+                const rem = (targetJisuu[s] || 0) - (counts[s] || 0);
+                sumRemain += rem;
+                const remColor = rem < 0 ? 'text-rose-600 font-bold' : 'text-slate-600';
+                rowRemain += `<td class="p-2 border border-slate-300 ${remColor}">${rem}</td>`;
+            });
+            rowRemain += `<td class="p-2 border border-slate-300 font-bold bg-slate-100">${sumRemain}</td></tr>`;
+
+            tbody.innerHTML = rowTarget + rowActual + rowRemain;
         }
+
+        function openBaseModal() { renderBaseTimetableModal(); document.getElementById('baseModal').classList.remove('hidden'); }
         function closeBaseModal() { document.getElementById('baseModal').classList.add('hidden'); }
         function switchBaseWeekTab(weekKey) {
             currentBaseModalWeek = weekKey;
@@ -481,7 +547,6 @@
             renderWeeklySheet();
         }
 
-        // --- 1週間まとめシート ---
         function renderWeeklySheet() {
             const baseDate = new Date(document.getElementById('weeklyBaseDate').value);
             const dayOfWeek = baseDate.getDay(); 
@@ -495,7 +560,6 @@
                 days.push(d.toISOString().split('T')[0]);
             }
 
-            // 週区分(A/B)を取得
             const firstData = scheduleData[days[0]] || {};
             const weekType = firstData.weekType || 'A';
             document.getElementById('weeklyTypeBadge').textContent = `${weekType}週`;
@@ -517,7 +581,6 @@
             const tbody = document.getElementById('weeklyTbody');
             tbody.innerHTML = '';
 
-            // 行事・連絡行
             let eventRow = `<tr class="bg-amber-50/50"><td class="p-2 border border-slate-300 font-bold text-center">行事・連絡</td>`;
             days.forEach(dStr => {
                 const data = scheduleData[dStr] || {};
@@ -532,7 +595,6 @@
             eventRow += `</tr>`;
             tbody.innerHTML += eventRow;
 
-            // 1〜6時間目
             for (let p = 1; p <= 6; p++) {
                 let pRow = `<tr><td class="p-2 border border-slate-300 font-bold text-center bg-slate-50">${p}時間目</td>`;
                 days.forEach((dStr, dIdx) => {
@@ -540,7 +602,6 @@
                     const period = (data.periods && data.periods[p-1]) ? data.periods[p-1] : {subj: '', content: '', plan: ''};
                     const baseSubj = baseMatrix[p-1][dIdx] || '';
                     
-                    // 時間割変更判定 (基本教科と違っていて、かつ※でない場合)
                     const isChanged = (period.subj && baseSubj && period.subj !== baseSubj && period.subj !== '※');
                     const cellBg = isChanged ? 'bg-amber-100/70 border-amber-300' : '';
                     
@@ -550,8 +611,8 @@
                                 <span class="font-bold text-indigo-800 text-sm">${period.subj || ''}</span>
                                 ${isChanged ? `<span class="text-[9px] bg-amber-600 text-white font-bold px-1 rounded">元: ${baseSubj}</span>` : ''}
                             </div>
-                            <div class="font-medium text-slate-800 text-xs mt-0.5">${period.content || ''}</div>
-                            ${period.plan ? `<div class="text-slate-500 text-[10px] mt-1 bg-white/70 p-1 rounded border border-slate-200">📝 ${period.plan}</div>` : ''}
+                            <div class="font-semibold text-slate-800 text-xs mt-1 border-t border-slate-100 pt-1">${period.content || '<span class="text-slate-300 font-normal">(未入力)</span>'}</div>
+                            ${period.plan ? `<div class="text-slate-500 text-[10px] mt-1 bg-white/80 p-1 rounded border border-slate-200">📝 ${period.plan}</div>` : ''}
                         </td>
                     `;
                 });
@@ -559,23 +620,6 @@
                 tbody.innerHTML += pRow;
             }
         }
-
-        // --- その他設定・保存 ---
-        function renderJisuuTable() {
-            const tbody = document.getElementById('jisuuTbody');
-            tbody.innerHTML = '';
-            jisuuData.forEach((row, rIdx) => {
-                const tr = document.createElement('tr');
-                tr.className = rIdx % 2 === 0 ? 'bg-white' : 'bg-slate-50';
-                let html = `<td class="p-2 font-bold border border-slate-300">${row.label}</td>`;
-                row.values.forEach((v, cIdx) => {
-                    html += `<td class="p-1 border border-slate-300"><input type="number" step="0.1" value="${v}" onchange="updateJisuu(${rIdx}, ${cIdx}, this.value)" class="w-full text-center bg-transparent"></td>`;
-                });
-                tr.innerHTML = html;
-                tbody.appendChild(tr);
-            });
-        }
-        function updateJisuu(rIdx, cIdx, val) { jisuuData[rIdx].values[cIdx] = parseFloat(val) || 0; saveToLocalStorage(); }
 
         function renderAnnualPlan() {
             const subj = document.getElementById('annualSubjFilter').value;
@@ -600,26 +644,24 @@
             localStorage.setItem('teacher_app_schedule', JSON.stringify(scheduleData));
             localStorage.setItem('teacher_app_base', JSON.stringify(baseTimetable));
             localStorage.setItem('teacher_app_annual', JSON.stringify(annualPlans));
-            localStorage.setItem('teacher_app_jisuu', JSON.stringify(jisuuData));
         }
         function loadLocalStorage() {
             const s = localStorage.getItem('teacher_app_schedule');
             const b = localStorage.getItem('teacher_app_base');
             const a = localStorage.getItem('teacher_app_annual');
-            const j = localStorage.getItem('teacher_app_jisuu');
             if(s) scheduleData = JSON.parse(s);
             if(b) baseTimetable = JSON.parse(b);
             if(a) annualPlans = JSON.parse(a);
-            if(j) jisuuData = JSON.parse(j);
         }
 
         function openImportModal() { document.getElementById('importModal').classList.remove('hidden'); }
         function closeImportModal() { document.getElementById('importModal').classList.add('hidden'); }
 
         function processImport() {
-            alert("CSVデータの取り込み・基本時間割の読み込みが完了しました！");
+            alert("CSVデータの取り込みが完了しました！");
             closeImportModal();
             loadDateData();
+            calculateJisuu();
             renderWeeklySheet();
         }
 
