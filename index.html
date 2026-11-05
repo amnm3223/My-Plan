@@ -14,6 +14,7 @@
             .page-break { page-break-before: always; }
             .print-card { border: 1px solid #ccc !important; box-shadow: none !important; }
             table { font-size: 10px !important; }
+            select, input, textarea { border: none !important; background: transparent !important; appearance: none !important; }
         }
         .print-only { display: none; }
     </style>
@@ -85,11 +86,21 @@
                     </h2>
                     <div>
                         <label class="block text-xs font-bold text-slate-500 mb-1">本日の予定・行事</label>
-                        <textarea id="dailyEvent" onchange="saveCurrentDateData()" rows="4" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-400 focus:outline-none" placeholder="行事や打ち合わせなどを入力"></textarea>
+                        <textarea id="dailyEvent" onchange="saveCurrentDateData()" rows="3" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-400 focus:outline-none" placeholder="行事や打ち合わせなどを入力"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1">下校予定時刻</label>
+                        <select id="dailyDismissal" onchange="saveCurrentDateData()" class="w-full border border-slate-300 rounded-lg p-2 text-sm font-bold text-indigo-800 focus:ring-2 focus:ring-indigo-400 focus:outline-none">
+                            <option value="">(未設定)</option>
+                            <option value="13:20">13:20</option>
+                            <option value="14:00">14:00</option>
+                            <option value="14:25">14:25</option>
+                            <option value="14:45">14:45</option>
+                        </select>
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-500 mb-1">詳細メモ・連絡事項</label>
-                        <textarea id="dailyMemo" onchange="saveCurrentDateData()" rows="6" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-400 focus:outline-none" placeholder="詳細メモ欄"></textarea>
+                        <textarea id="dailyMemo" onchange="saveCurrentDateData()" rows="5" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-400 focus:outline-none" placeholder="詳細メモ欄"></textarea>
                     </div>
                 </div>
 
@@ -103,7 +114,7 @@
             </div>
         </section>
 
-        <!-- 2. 時数管理・実績 タブ (C打ち切り対応) -->
+        <!-- 2. 時数管理・集計 タブ (C打ち切り対応・自動動的集計) -->
         <section id="sec-jisuu" class="hidden space-y-4">
             <div class="bg-white rounded-xl p-5 shadow-sm border border-slate-200 space-y-4">
                 <div class="flex flex-wrap justify-between items-center gap-4 border-b pb-3">
@@ -120,7 +131,7 @@
                 </div>
 
                 <p class="text-xs text-slate-500">
-                    💡 アプリ上で時間割を変更（例：国語から算数へ変更、C(打ち切り)の入力など）すると、指定期間内の実施時数が自動的に即時計算・カウントされます。
+                    💡 アプリ上で教科を変更したり「C(打ち切り)」を入れると、指定期間内の実施時数がリアルタイムでカウント・更新されます。
                 </p>
 
                 <div class="overflow-x-auto">
@@ -190,7 +201,7 @@
             </div>
         </section>
 
-        <!-- 4. 1週間まとめシート タブ -->
+        <!-- 4. 1週間まとめシート タブ (直接編集対応・下校時刻プルダウン化) -->
         <section id="sec-weekly" class="hidden space-y-4">
             <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-4 no-print">
                 <div class="flex items-center space-x-3">
@@ -215,7 +226,7 @@
                     <table class="w-full text-xs border-collapse border border-slate-300 min-w-[750px]">
                         <thead>
                             <tr class="bg-slate-100 text-center font-bold">
-                                <th class="p-2 border border-slate-300 w-20">校時 / 曜日</th>
+                                <th class="p-2 border border-slate-300 w-24">校時 / 曜日</th>
                                 <th class="p-2 border border-slate-300 w-1/5" id="th-mon">月</th>
                                 <th class="p-2 border border-slate-300 w-1/5" id="th-tue">火</th>
                                 <th class="p-2 border border-slate-300 w-1/5" id="th-wed">水</th>
@@ -284,6 +295,7 @@
 
     <script>
         const SUBJECT_LIST = ["国語", "書写", "社会", "算数", "理科", "生活", "音楽", "図工", "家庭", "体育", "道徳", "外国語", "総合", "学活", "C(打ち切り)", "行事"];
+        const DISMISSAL_TIMES = ["13:20", "14:00", "14:25", "14:45"];
 
         let scheduleData = {};
         let baseTimetable = {
@@ -382,9 +394,10 @@
 
         function loadDateData() {
             const dateStr = document.getElementById('targetDate').value;
-            const data = scheduleData[dateStr] || { event: '', memo: '', isBento: false, weekType: 'A', periods: Array(6).fill({subj: '', content: '', plan: ''}) };
+            const data = scheduleData[dateStr] || { event: '', memo: '', dismissalTime: '', isBento: false, weekType: 'A', periods: Array(6).fill({subj: '', content: '', plan: ''}) };
 
             document.getElementById('dailyEvent').value = data.event || '';
+            document.getElementById('dailyDismissal').value = data.dismissalTime || '';
             document.getElementById('dailyMemo').value = data.memo || '';
             document.getElementById('weekBadge').textContent = `${data.weekType || 'A'}週`;
             
@@ -437,11 +450,34 @@
             scheduleData[dateStr] = {
                 ...(scheduleData[dateStr] || {}),
                 event: document.getElementById('dailyEvent').value,
+                dismissalTime: document.getElementById('dailyDismissal').value,
                 memo: document.getElementById('dailyMemo').value,
                 periods: periods
             };
             saveToLocalStorage();
             calculateJisuu();
+        }
+
+        // --- 1週間まとめシート用直接編集反映 ---
+        function updateWeeklyPeriod(dStr, pIdx, field, value) {
+            if (!scheduleData[dStr]) {
+                scheduleData[dStr] = { event: '', memo: '', dismissalTime: '', isBento: false, weekType: 'A', periods: Array(6).fill({subj: '', content: '', plan: ''}) };
+            }
+            if (!scheduleData[dStr].periods) {
+                scheduleData[dStr].periods = Array(6).fill({subj: '', content: '', plan: ''});
+            }
+            scheduleData[dStr].periods[pIdx][field] = value;
+            saveToLocalStorage();
+            calculateJisuu();
+            renderWeeklySheet();
+        }
+
+        function updateWeeklyDismissal(dStr, value) {
+            if (!scheduleData[dStr]) {
+                scheduleData[dStr] = { event: '', memo: '', dismissalTime: '', isBento: false, weekType: 'A', periods: Array(6).fill({subj: '', content: '', plan: ''}) };
+            }
+            scheduleData[dStr].dismissalTime = value;
+            saveToLocalStorage();
         }
 
         // --- 動的時数計算 (C打ち切り対応) ---
@@ -581,6 +617,7 @@
             const tbody = document.getElementById('weeklyTbody');
             tbody.innerHTML = '';
 
+            // 1. 行事・連絡行
             let eventRow = `<tr class="bg-amber-50/50"><td class="p-2 border border-slate-300 font-bold text-center">行事・連絡</td>`;
             days.forEach(dStr => {
                 const data = scheduleData[dStr] || {};
@@ -595,6 +632,29 @@
             eventRow += `</tr>`;
             tbody.innerHTML += eventRow;
 
+            // 2. 下校時刻行（プルダウン化）
+            let dismissalRow = `<tr class="bg-indigo-50/40"><td class="p-2 border border-slate-300 font-bold text-center text-indigo-900"><i class="fa-solid fa-clock mr-1"></i>下校時刻</td>`;
+            days.forEach(dStr => {
+                const data = scheduleData[dStr] || {};
+                const currentVal = data.dismissalTime || '';
+                
+                const options = `
+                    <option value="">(未設定)</option>
+                    ${DISMISSAL_TIMES.map(t => `<option value="${t}" ${t === currentVal ? 'selected' : ''}>${t}</option>`).join('')}
+                `;
+
+                dismissalRow += `
+                    <td class="p-1.5 border border-slate-300 text-center">
+                        <select onchange="updateWeeklyDismissal('${dStr}', this.value)" class="w-full text-center font-bold text-indigo-800 text-xs bg-transparent border-b border-indigo-200 focus:outline-none focus:border-indigo-500 cursor-pointer">
+                            ${options}
+                        </select>
+                    </td>
+                `;
+            });
+            dismissalRow += `</tr>`;
+            tbody.innerHTML += dismissalRow;
+
+            // 3. 各校時行
             for (let p = 1; p <= 6; p++) {
                 let pRow = `<tr><td class="p-2 border border-slate-300 font-bold text-center bg-slate-50">${p}時間目</td>`;
                 days.forEach((dStr, dIdx) => {
@@ -607,11 +667,14 @@
                     
                     pRow += `
                         <td class="p-2 border border-slate-300 ${cellBg}">
-                            <div class="flex items-center justify-between">
-                                <span class="font-bold text-indigo-800 text-sm">${period.subj || ''}</span>
-                                ${isChanged ? `<span class="text-[9px] bg-amber-600 text-white font-bold px-1 rounded">元: ${baseSubj}</span>` : ''}
+                            <div class="flex items-center justify-between gap-1 mb-1">
+                                <select onchange="updateWeeklyPeriod('${dStr}', ${p-1}, 'subj', this.value)" class="font-bold text-indigo-800 text-xs bg-transparent border-none focus:outline-none cursor-pointer">
+                                    <option value="">(選択)</option>
+                                    ${SUBJECT_LIST.map(s => `<option value="${s}" ${s === period.subj ? 'selected' : ''}>${s}</option>`).join('')}
+                                </select>
+                                ${isChanged ? `<span class="text-[9px] bg-amber-600 text-white font-bold px-1 rounded whitespace-nowrap">元: ${baseSubj}</span>` : ''}
                             </div>
-                            <div class="font-semibold text-slate-800 text-xs mt-1 border-t border-slate-100 pt-1">${period.content || '<span class="text-slate-300 font-normal">(未入力)</span>'}</div>
+                            <input type="text" value="${period.content || ''}" onchange="updateWeeklyPeriod('${dStr}', ${p-1}, 'content', this.value)" class="w-full font-semibold text-slate-800 text-xs bg-transparent border-b border-dashed border-slate-300 focus:outline-none focus:border-indigo-500" placeholder="学習内容">
                             ${period.plan ? `<div class="text-slate-500 text-[10px] mt-1 bg-white/80 p-1 rounded border border-slate-200">📝 ${period.plan}</div>` : ''}
                         </td>
                     `;
@@ -666,10 +729,10 @@
         }
 
         function exportCSV() {
-            let csv = "\uFEFF日付,予定,1時間目教科,1時間目内容,2時間目教科,2時間目内容,3時間目教科,3時間目内容,4時間目教科,4時間目内容,5時間目教科,5時間目内容,6時間目教科,6時間目内容\n";
+            let csv = "\uFEFF日付,予定,下校時刻,1時間目教科,1時間目内容,2時間目教科,2時間目内容,3時間目教科,3時間目内容,4時間目教科,4時間目内容,5時間目教科,5時間目内容,6時間目教科,6時間目内容\n";
             Object.keys(scheduleData).forEach(d => {
                 const data = scheduleData[d];
-                let row = [d, `"${data.event || ''}"`];
+                let row = [d, `"${data.event || ''}"`, `"${data.dismissalTime || ''}"`];
                 for(let i=0; i<6; i++) {
                     const p = (data.periods && data.periods[i]) ? data.periods[i] : {subj: '', content: ''};
                     row.push(`"${p.subj || ''}"`, `"${p.content || ''}"`);
