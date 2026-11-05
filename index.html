@@ -201,7 +201,7 @@
             </div>
         </section>
 
-        <!-- 4. 1週間まとめシート タブ (直接編集対応・下校時刻プルダウン化) -->
+        <!-- 4. 1週間まとめシート タブ (交流教科ピンク表示・直接編集対応) -->
         <section id="sec-weekly" class="hidden space-y-4">
             <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-4 no-print">
                 <div class="flex items-center space-x-3">
@@ -210,7 +210,7 @@
                     <span id="weeklyTypeBadge" class="bg-indigo-100 text-indigo-700 text-xs font-bold px-2.5 py-1 rounded-full">A週</span>
                 </div>
                 <div class="flex items-center space-x-3 text-xs">
-                    <span class="inline-flex items-center"><span class="w-3 h-3 bg-amber-100 border border-amber-300 rounded mr-1"></span> 変更授業</span>
+                    <span class="inline-flex items-center"><span class="w-3 h-3 bg-rose-200 border border-rose-300 rounded mr-1"></span> 交流学級参加教科</span>
                     <button onclick="window.print()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold px-4 py-2 rounded-lg flex items-center shadow-sm">
                         <i class="fa-solid fa-print mr-2"></i> 印刷 / PDF保存
                     </button>
@@ -296,6 +296,8 @@
     <script>
         const SUBJECT_LIST = ["国語", "書写", "社会", "算数", "理科", "生活", "音楽", "図工", "家庭", "体育", "道徳", "外国語", "総合", "学活", "C(打ち切り)", "行事"];
         const DISMISSAL_TIMES = ["13:20", "14:00", "14:25", "14:45"];
+        // ★ 交流学級参加教科（ピンク色背景にする教科）
+        const INCLUSIVE_SUBJECTS = ["体育", "生活", "図工", "図画工作", "音楽", "学活"];
 
         let scheduleData = {};
         let baseTimetable = {
@@ -663,16 +665,19 @@
                     const baseSubj = baseMatrix[p-1][dIdx] || '';
                     
                     const isChanged = (period.subj && baseSubj && period.subj !== baseSubj && period.subj !== '※');
-                    const cellBg = isChanged ? 'bg-amber-100/70 border-amber-300' : '';
+                    
+                    // 交流学級参加教科（体育・生活・図工・音楽・学活）判定
+                    const isInclusive = INCLUSIVE_SUBJECTS.includes(period.subj);
+                    const cellBg = isInclusive ? 'bg-rose-100/80 border-rose-300' : '';
                     
                     pRow += `
                         <td class="p-2 border border-slate-300 ${cellBg}">
                             <div class="flex items-center justify-between gap-1 mb-1">
-                                <select onchange="updateWeeklyPeriod('${dStr}', ${p-1}, 'subj', this.value)" class="font-bold text-indigo-800 text-xs bg-transparent border-none focus:outline-none cursor-pointer">
+                                <select onchange="updateWeeklyPeriod('${dStr}', ${p-1}, 'subj', this.value)" class="font-bold ${isInclusive ? 'text-rose-900' : 'text-indigo-800'} text-xs bg-transparent border-none focus:outline-none cursor-pointer">
                                     <option value="">(選択)</option>
                                     ${SUBJECT_LIST.map(s => `<option value="${s}" ${s === period.subj ? 'selected' : ''}>${s}</option>`).join('')}
                                 </select>
-                                ${isChanged ? `<span class="text-[9px] bg-amber-600 text-white font-bold px-1 rounded whitespace-nowrap">元: ${baseSubj}</span>` : ''}
+                                ${isChanged ? `<span class="text-[9px] bg-slate-600 text-white font-bold px-1 rounded whitespace-nowrap">元: ${baseSubj}</span>` : ''}
                             </div>
                             <input type="text" value="${period.content || ''}" onchange="updateWeeklyPeriod('${dStr}', ${p-1}, 'content', this.value)" class="w-full font-semibold text-slate-800 text-xs bg-transparent border-b border-dashed border-slate-300 focus:outline-none focus:border-indigo-500" placeholder="学習内容">
                             ${period.plan ? `<div class="text-slate-500 text-[10px] mt-1 bg-white/80 p-1 rounded border border-slate-200">📝 ${period.plan}</div>` : ''}
